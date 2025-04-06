@@ -12,7 +12,7 @@ dnf install -y python3 python3-pip git nginx
 mkdir -p /opt/flask-app
 
 # Clone the application (replace with your actual repository if needed)
-git clone https://github.com/yourusername/flask-oidc-client-demo.git /opt/flask-app
+git clone https://github.com/hoangquochung1110/flask-oidc-client-demo.git /opt/flask-app
 
 # Alternative: If you're deploying code via other means (e.g., AWS CodeDeploy)
 # the below commands assume code is already in /opt/flask-app
