@@ -1,6 +1,8 @@
-# Flask OIDC Client Demo with Authlib
+# Flask Application with Zero-code Authentication Demo
 
-A simple Flask application demonstrating OpenID Connect client integration using Authlib.
+A simple Flask application demonstrating zero-code authentication where the load balancer handles the authentication process.
+
+Implementation details: https://dev.to/hoangquochung1110/deploy-oidc-authentication-on-aws-with-no-coding-using-aws-cognito-and-application-load-balancer-1g8o
 
 ## Setup
 
@@ -9,9 +11,6 @@ A simple Flask application demonstrating OpenID Connect client integration using
    ```
    pip install -r requirements.txt
    ```
-3. Configure your OIDC provider:
-   - Copy `.env.example` to `.env`
-   - Update the `.env` file with your OIDC provider details
 
 ## Running the Application
 
@@ -24,97 +23,49 @@ The application will be available at http://localhost:5000.
 
 ## Features
 
-- OpenID Connect authentication with Authlib
-- User profile display with information from ID token
-- Logout functionality
-- Environment-based configuration for security
-- Modular authentication with separation of concerns
+- Zero-code authentication - authentication is handled by the load balancer
+- No OIDC client implementation needed in the application code
+- User profile display with information passed from the load balancer
+- Simplified application architecture focusing on business logic
 
 ## Project Structure
 
-The project now uses a modular approach with authentication code separated:
+The project has a simple structure with no authentication code in the application itself:
 
 ```
 .
 ├── app.py              # Main Flask application
-├── auth/               # Authentication module
-│   ├── __init__.py     # Module initialization
-│   └── oidc.py         # OIDC implementation
 ├── templates/          # HTML templates
 │   ├── index.html      # Landing page
 │   └── profile.html    # User profile page
 └── .env                # Environment configuration
 ```
 
-## Authentication Module
+## How It Works
 
-The `auth` module provides the following functions:
+In this demonstration:
 
-- `setup_oidc(app)`: Initialize OIDC with your Flask app
-- `login_required`: Decorator to protect routes
-- `get_user_info()`: Get the authenticated user's information
-- `authenticate()`: Redirect to the authentication provider
-- `process_callback()`: Process the authentication callback
-- `logout()`: Clear user session data
+1. The load balancer acts as the authentication service
+2. When a user accesses a protected resource, the load balancer:
+   - Intercepts the request
+   - Redirects to an authentication provider if needed
+   - Handles all OIDC/authentication flows
+   - Passes user information to the application
 
-## Token Exchange Process
+3. The application focuses solely on its core functionality, with no authentication code
 
-In the OIDC authentication flow, the token exchange happens during the callback processing. Authlib abstracts away the complex details of this process:
+## Benefits of Zero-code Authentication
 
-1. **Authorization Code Extraction**:
-   - Automatically extracts the code from Flask's request object
-
-2. **CSRF Protection**:
-   - Validates the state parameter to prevent cross-site request forgery
-
-3. **Token Exchange Request**:
-   - Constructs a properly formatted HTTP POST request to the token endpoint
-   - Includes client credentials via HTTP Basic Authentication
-   - Sends the authorization code and other required parameters
-
-4. **Token Validation**:
-   - Verifies the JWT signature using the provider's JSON Web Keys (JWKs)
-   - Validates expiration time, issuer, and audience claims
-   - Performs other security checks
-
-5. **User Information Extraction**:
-   - Decodes the ID token and extracts user claims
-   - Makes the user information available via the 'userinfo' field
-
-All of this complex logic is encapsulated in a single function call:
-```python
-token = oauth.oidc.authorize_access_token()
-```
+- **Simplified Application Code**: No need to implement and maintain authentication code
+- **Centralized Security**: Authentication is managed at the infrastructure level
+- **Reduced Dependencies**: No authentication libraries required in the application
+- **Consistent Security**: Uniform authentication across multiple applications
+- **Easier Maintenance**: Authentication updates happen at the load balancer level
 
 ## Configuration
 
-Edit the `.env` file to configure your OIDC provider:
+Because authentication is handled by the load balancer, minimal configuration is needed in the application itself.
 
-```
-# OIDC Provider Configuration
-CLIENT_ID=your_client_id
-CLIENT_SECRET=your_client_secret
-OIDC_AUTHORITY=https://your-auth-server.com/your-tenant-id
-OIDC_DISCOVERY_URL=https://your-auth-server.com/your-tenant-id/.well-known/openid-configuration
-OIDC_REDIRECT_URI=http://localhost:5000/auth/callback
-```
+## Environment Setup
 
-Replace placeholder values with your actual OIDC provider configuration.
-
-## Manual Configuration (Alternative)
-
-If your provider doesn't support OpenID Connect discovery, you can manually configure the endpoints in the `auth/oidc.py` file:
-
-```python
-oauth.register(
-    name='oidc',
-    client_id=os.getenv('CLIENT_ID'),
-    client_secret=os.getenv('CLIENT_SECRET'),
-    access_token_url='https://your-auth-server.com/token',
-    authorize_url='https://your-auth-server.com/authorize',
-    userinfo_endpoint='https://your-auth-server.com/userinfo',
-    client_kwargs={
-        'scope': 'openid email profile'
-    }
-)
-``` 
+For demonstration purposes, the application expects the load balancer to pass user information via headers or environment variables, which are then used to display user details in the profile page. 
